@@ -81,8 +81,8 @@ app = FastAPI(
     version="2.0.0",
     contact={
         "name": "Laredo nunes",
-        "url": "https://github.com/seu-repo",
-        "email": "contato@laredonunes.com.br",
+        "url": "https://www.linkedin.com/in/laredo-nunes-0a8a7363",
+        "email": "laredonunes@gmail.com",
     },
     license_info={
         "name": "MIT",

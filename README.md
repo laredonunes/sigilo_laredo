@@ -106,21 +106,55 @@ GET /status/{uuid}
 - Docker e Docker Compose instalados
 - Mínimo 8GB de RAM (recomendado 16GB)
 
-### Instalação
+### Instalação e Execução (Produção)
 ```bash
 # 1. Clone o repositório
 git clone https://github.com/laredonunes/sigilo_laredo.git
 cd sigilo_laredo
 
-# 2. Inicie todos os serviços
+# 2. Configure as variáveis de ambiente
+cp .env.example .env
+# Edite o arquivo .env se necessário (opcional para teste rápido)
+
+# 3. Inicie todos os serviços
 docker-compose up -d --build
 
-# 3. Aguarde inicialização (~2 minutos)
+# 4. Aguarde inicialização (~2 minutos)
+# O serviço 'ollama-init' irá baixar o modelo de IA automaticamente
 docker-compose logs -f ollama-init
 
-# 4. Acesse o Dashboard
-# Abra tests/dashboard.html no navegador
+# 5. Acesse o Dashboard
+# Abra tests/dashboard.html no navegador ou acesse http://localhost:5000
 ```
+
+### Execução para Desenvolvimento Local (Sem Docker)
+Se você deseja rodar a API e os workers localmente para desenvolvimento:
+
+1. **Suba a infraestrutura básica (Banco, Redis, RabbitMQ, Ollama):**
+   ```bash
+   docker-compose up -d postgres redis rabbitmq ollama
+   ```
+
+2. **Crie um ambiente virtual e instale as dependências:**
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # Linux/Mac
+   # .venv\Scripts\activate  # Windows
+   pip install -r requirements.txt
+   ```
+
+3. **Configure o ambiente:**
+   Certifique-se de que o arquivo `.env` aponta para `localhost` (veja `.env.example`).
+
+4. **Inicie a API:**
+   ```bash
+   uvicorn src.api:app --reload --port 8000
+   ```
+
+5. **Inicie os Workers (em outro terminal):**
+   ```bash
+   celery -A src.celery_app worker --loglevel=info -Q deteccao,banco,llm,dicionario
+   ```
 
 ---
 
