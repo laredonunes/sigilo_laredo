@@ -4,13 +4,13 @@ services:
     image: postgres:15-alpine
     container_name: sigilo-postgres
     environment:
-      POSTGRES_DB: sigilo_db
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: secret123
+      POSTGRES_DB: ${POSTGRES_DB:-sigilo_db}
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret123}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -40,8 +40,8 @@ services:
       - "15672:15672"
       - "5672:5672"
     environment:
-      RABBITMQ_DEFAULT_USER: admin
-      RABBITMQ_DEFAULT_PASS: secret123
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-admin}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-secret123}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
@@ -108,9 +108,9 @@ services:
       - ./src:/app/src
       - ./tests:/app/tests # <--- Mapeia a pasta de testes
     environment:
-      - DATABASE_URL=postgresql://admin:secret123@sigilo-postgres:5432/sigilo_db
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-secret123}@sigilo-postgres:5432/${POSTGRES_DB:-sigilo_db}
       - REDIS_URL=redis://sigilo-redis:6379/0
-      - CELERY_BROKER_URL=amqp://admin:secret123@sigilo-rabbitmq:5672//
+      - CELERY_BROKER_URL=amqp://${RABBITMQ_DEFAULT_USER:-admin}:${RABBITMQ_DEFAULT_PASS:-secret123}@sigilo-rabbitmq:5672//
       - CELERY_RESULT_BACKEND=redis://sigilo-redis:6379/1
       - OLLAMA_URL=http://sigilo-ollama:11434
       - AUTH_PROVIDER=mock
@@ -137,9 +137,9 @@ services:
     volumes:
       - ./src:/app/src
     environment:
-      - DATABASE_URL=postgresql://admin:secret123@sigilo-postgres:5432/sigilo_db
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-secret123}@sigilo-postgres:5432/${POSTGRES_DB:-sigilo_db}
       - REDIS_URL=redis://sigilo-redis:6379/0
-      - CELERY_BROKER_URL=amqp://admin:secret123@sigilo-rabbitmq:5672//
+      - CELERY_BROKER_URL=amqp://${RABBITMQ_DEFAULT_USER:-admin}:${RABBITMQ_DEFAULT_PASS:-secret123}@sigilo-rabbitmq:5672//
       - CELERY_RESULT_BACKEND=redis://sigilo-redis:6379/1
       - OLLAMA_URL=http://sigilo-ollama:11434
     depends_on:
@@ -159,9 +159,9 @@ services:
     volumes:
       - ./src:/app/src
     environment:
-      - DATABASE_URL=postgresql://admin:secret123@sigilo-postgres:5432/sigilo_db
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-secret123}@sigilo-postgres:5432/${POSTGRES_DB:-sigilo_db}
       - REDIS_URL=redis://sigilo-redis:6379/0
-      - CELERY_BROKER_URL=amqp://admin:secret123@sigilo-rabbitmq:5672//
+      - CELERY_BROKER_URL=amqp://${RABBITMQ_DEFAULT_USER:-admin}:${RABBITMQ_DEFAULT_PASS:-secret123}@sigilo-rabbitmq:5672//
       - CELERY_RESULT_BACKEND=redis://sigilo-redis:6379/1
     depends_on:
       - redis
@@ -180,9 +180,9 @@ services:
     volumes:
       - ./src:/app/src
     environment:
-      - DATABASE_URL=postgresql://admin:secret123@sigilo-postgres:5432/sigilo_db
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-secret123}@sigilo-postgres:5432/${POSTGRES_DB:-sigilo_db}
       - REDIS_URL=redis://sigilo-redis:6379/0
-      - CELERY_BROKER_URL=amqp://admin:secret123@sigilo-rabbitmq:5672//
+      - CELERY_BROKER_URL=amqp://${RABBITMQ_DEFAULT_USER:-admin}:${RABBITMQ_DEFAULT_PASS:-secret123}@sigilo-rabbitmq:5672//
       - CELERY_RESULT_BACKEND=redis://sigilo-redis:6379/1
       - OLLAMA_URL=http://sigilo-ollama:11434
       - MODEL_NAME=qwen2.5:1.5b-instruct
@@ -204,9 +204,9 @@ services:
     volumes:
       - ./src:/app/src
     environment:
-      - DATABASE_URL=postgresql://admin:secret123@sigilo-postgres:5432/sigilo_db
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-secret123}@sigilo-postgres:5432/${POSTGRES_DB:-sigilo_db}
       - REDIS_URL=redis://sigilo-redis:6379/0
-      - CELERY_BROKER_URL=amqp://admin:secret123@sigilo-rabbitmq:5672//
+      - CELERY_BROKER_URL=amqp://${RABBITMQ_DEFAULT_USER:-admin}:${RABBITMQ_DEFAULT_PASS:-secret123}@sigilo-rabbitmq:5672//
       - CELERY_RESULT_BACKEND=redis://sigilo-redis:6379/1
     depends_on:
       - redis
@@ -225,7 +225,7 @@ services:
     ports:
       - "5555:5555"
     environment:
-      - CELERY_BROKER_URL=amqp://admin:secret123@sigilo-rabbitmq:5672//
+      - CELERY_BROKER_URL=amqp://${RABBITMQ_DEFAULT_USER:-admin}:${RABBITMQ_DEFAULT_PASS:-secret123}@sigilo-rabbitmq:5672//
     depends_on:
       - rabbitmq
     deploy:
