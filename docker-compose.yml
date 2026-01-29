@@ -1,0 +1,249 @@
+services:
+  # PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: sigilo-postgres
+    environment:
+      POSTGRES_DB: sigilo_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pii_network
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: sigilo-redis
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - pii_network
+
+  # RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: sigilo-rabbitmq
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: secret123
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pii_network
+
+  # Ollama
+  ollama:
+    image: ollama/ollama:latest
+    container_name: sigilo-ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+      - OLLAMA_NUM_PARALLEL=1
+      - OLLAMA_MAX_LOADED_MODELS=1
+      - OLLAMA_FLASH_ATTENTION=1
+      - OLLAMA_KEEP_ALIVE=-1
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - pii_network
+
+  # Init Ollama
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: sigilo-ollama-init
+    depends_on:
+      ollama:
+        condition: service_healthy
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=http://sigilo-ollama:11434
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        echo "Baixando modelo Qwen 2.5 1.5B..."
+        ollama pull qwen2.5:1.5b-instruct
+        echo "Aquecendo modelo..."
+        ollama run qwen2.5:1.5b-instruct "oi" > /dev/null 2>&1
+        echo "Modelo pronto!"
+    restart: "no"
+    networks:
+      - pii_network
+
+  # API (Leve)
+  api:
+    build:
+      context: .
+      target: base
+    container_name: sigilo-api
+    command: uvicorn src.api:app --host 0.0.0.0 --port 5000 --workers 1
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests # <--- Mapeia a pasta de testes
+    environment:
+      - DATABASE_URL=postgresql://admin:secret123@sigilo-postgres:5432/sigilo_db
+      - REDIS_URL=redis://sigilo-redis:6379/0
+      - CELERY_BROKER_URL=amqp://admin:secret123@sigilo-rabbitmq:5672//
+      - CELERY_RESULT_BACKEND=redis://sigilo-redis:6379/1
+      - OLLAMA_URL=http://sigilo-ollama:11434
+      - AUTH_PROVIDER=mock
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+    networks:
+      - pii_network
+      - tunnel
+
+  # Worker Detecção (Pesado)
+  worker-deteccao:
+    build:
+      context: .
+      target: heavy
+    container_name: sigilo-worker-deteccao
+    command: celery -A src.celery_app worker -Q deteccao --loglevel=info -n worker-deteccao@%h --concurrency=1
+    volumes:
+      - ./src:/app/src
+    environment:
+      - DATABASE_URL=postgresql://admin:secret123@sigilo-postgres:5432/sigilo_db
+      - REDIS_URL=redis://sigilo-redis:6379/0
+      - CELERY_BROKER_URL=amqp://admin:secret123@sigilo-rabbitmq:5672//
+      - CELERY_RESULT_BACKEND=redis://sigilo-redis:6379/1
+      - OLLAMA_URL=http://sigilo-ollama:11434
+    depends_on:
+      - redis
+      - postgres
+      - rabbitmq
+    networks:
+      - pii_network
+
+  # Worker Banco (Leve)
+  worker-banco:
+    build:
+      context: .
+      target: base
+    container_name: sigilo-worker-banco
+    command: celery -A src.celery_app worker -Q banco --loglevel=info -n worker-banco@%h --concurrency=1
+    volumes:
+      - ./src:/app/src
+    environment:
+      - DATABASE_URL=postgresql://admin:secret123@sigilo-postgres:5432/sigilo_db
+      - REDIS_URL=redis://sigilo-redis:6379/0
+      - CELERY_BROKER_URL=amqp://admin:secret123@sigilo-rabbitmq:5672//
+      - CELERY_RESULT_BACKEND=redis://sigilo-redis:6379/1
+    depends_on:
+      - redis
+      - postgres
+      - rabbitmq
+    networks:
+      - pii_network
+
+  # Worker LLM (Leve)
+  worker-llm:
+    build:
+      context: .
+      target: base
+    container_name: sigilo-worker-llm
+    command: celery -A src.celery_app worker -Q llm --loglevel=info -n worker-llm@%h --concurrency=1
+    volumes:
+      - ./src:/app/src
+    environment:
+      - DATABASE_URL=postgresql://admin:secret123@sigilo-postgres:5432/sigilo_db
+      - REDIS_URL=redis://sigilo-redis:6379/0
+      - CELERY_BROKER_URL=amqp://admin:secret123@sigilo-rabbitmq:5672//
+      - CELERY_RESULT_BACKEND=redis://sigilo-redis:6379/1
+      - OLLAMA_URL=http://sigilo-ollama:11434
+      - MODEL_NAME=qwen2.5:1.5b-instruct
+    depends_on:
+      - redis
+      - postgres
+      - rabbitmq
+      - ollama
+    networks:
+      - pii_network
+
+  # Worker Dicionário (Leve)
+  worker-dicionario:
+    build:
+      context: .
+      target: base
+    container_name: sigilo-worker-dicionario
+    command: celery -A src.celery_app worker -Q dicionario --loglevel=info -n worker-dicionario@%h --concurrency=1
+    volumes:
+      - ./src:/app/src
+    environment:
+      - DATABASE_URL=postgresql://admin:secret123@sigilo-postgres:5432/sigilo_db
+      - REDIS_URL=redis://sigilo-redis:6379/0
+      - CELERY_BROKER_URL=amqp://admin:secret123@sigilo-rabbitmq:5672//
+      - CELERY_RESULT_BACKEND=redis://sigilo-redis:6379/1
+    depends_on:
+      - redis
+      - postgres
+      - rabbitmq
+    networks:
+      - pii_network
+
+  # Flower (Leve)
+  flower:
+    build:
+      context: .
+      target: base
+    container_name: sigilo-flower
+    command: celery -A src.celery_app flower --port=5555
+    ports:
+      - "5555:5555"
+    environment:
+      - CELERY_BROKER_URL=amqp://admin:secret123@sigilo-rabbitmq:5672//
+    depends_on:
+      - rabbitmq
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    networks:
+      - pii_network
+      - tunnel
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+  ollama_data:
+
+networks:
+  pii_network:
+    driver: bridge
+  tunnel:
+    external: true

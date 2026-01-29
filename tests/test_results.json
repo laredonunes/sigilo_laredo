@@ -1,0 +1,121 @@
+{
+  "timestamp": "2026-01-29T17:02:27.078438",
+  "total": 14,
+  "passou": 14,
+  "falhou": 0,
+  "taxa_sucesso": 100.0,
+  "testes": [
+    {
+      "nome": "1.1 - Email simples",
+      "categoria": "Simples",
+      "sucesso": true,
+      "input": "Meu email é laredonunes@gmail.com para contato",
+      "output_esperado": "Meu email é <EMAIL> para contato",
+      "output_obtido": "Meu email é <EMAIL> para contato"
+    },
+    {
+      "nome": "1.2 - CPF com pontuação",
+      "categoria": "Simples",
+      "sucesso": true,
+      "input": "Meu CPF é 123.456.789-00 conforme solicitado",
+      "output_esperado": "Meu CPF é <CPF> conforme solicitado",
+      "output_obtido": "Meu CPF é <CPF> conforme solicitado"
+    },
+    {
+      "nome": "1.3 - CPF sem pontuação",
+      "categoria": "Simples",
+      "sucesso": true,
+      "input": "CPF 12345678900",
+      "output_esperado": "CPF <CPF>",
+      "output_obtido": "CPF <CPF>"
+    },
+    {
+      "nome": "1.4 - Telefone completo",
+      "categoria": "Simples",
+      "sucesso": true,
+      "input": "Ligue para (21) 98765-4321",
+      "output_esperado": "Ligue para <TELEFONE>",
+      "output_obtido": "Ligue para <TELEFONE>"
+    },
+    {
+      "nome": "1.5 - CNPJ",
+      "categoria": "Simples",
+      "sucesso": true,
+      "input": "CNPJ da empresa: 12.345.678/0001-90",
+      "output_esperado": "CNPJ da empresa: <CNPJ>",
+      "output_obtido": "CNPJ da empresa: <CNPJ>"
+    },
+    {
+      "nome": "2.1 - Nome + Email",
+      "categoria": "Composto",
+      "sucesso": true,
+      "input": "João Silva, email joao.silva@empresa.com.br",
+      "output_esperado": null,
+      "output_obtido": "João Silva, email <EMAIL>"
+    },
+    {
+      "nome": "2.2 - Nome + CPF + Telefone",
+      "categoria": "Composto",
+      "sucesso": true,
+      "input": "Maria Oliveira, CPF 987.654.321-00, tel (11) 3333-4444",
+      "output_esperado": null,
+      "output_obtido": "Maria Oliveira, CPF <CPF>, tel <TELEFONE>"
+    },
+    {
+      "nome": "2.3 - Denúncia completa",
+      "categoria": "Composto",
+      "sucesso": true,
+      "input": "Denunciante: Carlos Santos, CPF 111.222.333-44, email carlos@email.com, fone (21) 99999-8888.",
+      "output_esperado": null,
+      "output_obtido": "Denunciante: Carlos Santos, CPF <CPF>, email <EMAIL>, fone <TELEFONE>."
+    },
+    {
+      "nome": "3.1 - Múltiplos emails",
+      "categoria": "Edge Case",
+      "sucesso": true,
+      "input": "Contatos: joao@gmail.com, maria@hotmail.com, pedro@empresa.com.br",
+      "output_esperado": null,
+      "output_obtido": "Contatos: <EMAIL>, <EMAIL>, <EMAIL>"
+    },
+    {
+      "nome": "3.2 - Telefone internacional",
+      "categoria": "Edge Case",
+      "sucesso": true,
+      "input": "WhatsApp: +55 21 98765-4321",
+      "output_esperado": "WhatsApp: <TELEFONE>",
+      "output_obtido": "WhatsApp: <TELEFONE>"
+    },
+    {
+      "nome": "4.1 - Apenas texto normal",
+      "categoria": "Negativo",
+      "sucesso": true,
+      "input": "Solicito informações sobre a licitação de obras.",
+      "output_esperado": "Solicito informações sobre a licitação de obras.",
+      "output_obtido": "Solicito informações sobre a licitação de obras."
+    },
+    {
+      "nome": "4.2 - Valores monetários",
+      "categoria": "Negativo",
+      "sucesso": true,
+      "input": "O valor do contrato é R$ 1.234.567,89",
+      "output_esperado": "O valor do contrato é R$ 1.234.567,89",
+      "output_obtido": "O valor do contrato é R$ 1.234.567,89"
+    },
+    {
+      "nome": "5.1 - Email do Laredo",
+      "categoria": "Problemático",
+      "sucesso": true,
+      "input": "meu email laredonunes@gmail.com",
+      "output_esperado": "meu email <EMAIL>",
+      "output_obtido": "meu email <EMAIL>"
+    },
+    {
+      "nome": "5.2 - Telefone sem DDD",
+      "categoria": "Problemático",
+      "sucesso": true,
+      "input": "meu numero 33643721",
+      "output_esperado": null,
+      "output_obtido": "meu numero <TELEFONE>"
+    }
+  ]
+}

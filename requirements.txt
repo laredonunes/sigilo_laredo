@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+celery
+redis
+sqlalchemy
+psycopg2-binary
+presidio-analyzer
+presidio-anonymizer
+gliner
+pydantic>=2.9.0,<3.0.0
+python-dotenv
+flower
+spacy
+requests
+ollama

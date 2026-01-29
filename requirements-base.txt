@@ -1,0 +1,19 @@
+fastapi
+uvicorn[standard]
+celery
+redis
+sqlalchemy
+psycopg2-binary
+pydantic>=2.9.0,<3.0.0
+python-dotenv
+flower
+requests
+ollama
+# Auth
+python-jose[cryptography]
+python-keycloak
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+# Rate Limiting
+slowapi==0.1.9

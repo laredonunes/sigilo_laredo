@@ -1,0 +1,19 @@
+# Teste de detecção de PII
+POST http://localhost:8000/detectar-pii
+Content-Type: application/json
+
+{
+  "texto": "Meu nome é João Silva, CPF 123.456.789-00. Denuncio irregularidade...",
+  "protocolo": "LAI-2026-001234",
+  "usuario_id": "cidadao@email.com"
+}
+
+###
+
+# Consulta de status (substitua o UUID pelo retornado acima)
+GET http://localhost:8000/status/550e8400-e29b-41d4-a716-446655440000
+
+###
+
+# Health Check
+GET http://localhost:8000/health
