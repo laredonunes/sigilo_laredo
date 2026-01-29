@@ -109,8 +109,8 @@ GET /status/{uuid}
 ### Instalação
 ```bash
 # 1. Clone o repositório
-git clone https://github.com/laredonunes/sigilo_laredo_laredo.git
-cd sigilo
+git clone https://github.com/laredonunes/sigilo_laredo.git
+cd sigilo_laredo
 
 # 2. Inicie todos os serviços
 docker-compose up -d --build
