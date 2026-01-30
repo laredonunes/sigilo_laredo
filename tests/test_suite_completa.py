@@ -9,11 +9,14 @@ import time
 import json
 from typing import Dict, List, Optional
 from datetime import datetime
+import os
+from dotenv import load_dotenv
+
 import sys
 
 # Configuração de Auth (Mock)
 AUTH_HEADER = {"Authorization": "Bearer mock-admin-token"}
-BASE_URL = "https://sigilo-api.laredonunes.com" # Ajuste se necessário (ex: https://sigilo-api...)
+BASE_URL = os.getenv("SIGILO_BASE_URL", "https://sigilo-api.laredonunes.com") # Ajuste se necessário (ex: https://sigilo-api...)
 
 class TestCase:
     def __init__(self, nome: str, input_text: str, expected_output: Optional[str], 

@@ -173,3 +173,6 @@ logs/
 .DS_Store
 
 # AI / LLM Documentation
+LLM_GUIDE.md
+SCALING_GUIDE.md
+CHANGELOG.md

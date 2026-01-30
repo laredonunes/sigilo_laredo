@@ -3,9 +3,11 @@ import requests
 import time
 import json
 import sys
+import os
+from dotenv import load_dotenv
 
 # URL da API (ajuste se necessário, ex: via tunnel)
-BASE_URL = "https://sigilo-api.laredonunes.com"
+BASE_URL = os.getenv("SIGILO_BASE_URL", "https://sigilo-api.laredonunes.com")
 # Token Mock (já configurado no IAM)
 AUTH_HEADER = {"Authorization": "Bearer mock-admin-token"}
 
