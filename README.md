@@ -68,6 +68,174 @@ O projeto inclui um **Dashboard de Teste** (`tests/dashboard.html`) para facilit
 
 ---
 
+## 📡 Contrato da API
+
+### Entrada (Request)
+
+**POST /detectar-pii**
+```json
+{
+  "texto": "Solicito cópia do contrato 2024/99. Meu nome é Maria Souza, CPF 123.456.789-00, email maria@teste.com, telefone (21) 98765-4321.",
+  "protocolo": "LAI-2026-001",  // Opcional
+  "usuario_id": "maria.souza"    // Opcional
+}
+```
+
+**Campos:**
+- `texto` (string, obrigatório): Texto do pedido LAI contendo possíveis dados sensíveis
+- `protocolo` (string, opcional): Identificador único do pedido no sistema de origem
+- `usuario_id` (string, opcional): ID do solicitante para auditoria
+
+---
+
+### Saída (Response)
+
+**Resposta Imediata (202 Accepted)**
+```json
+{
+  "origem_id": "550e8400-e29b-41d4-a716-446655440000",
+  "status": "processing",
+  "message": "Pedido LAI-2026-001 em processamento",
+  "created_at": "2026-01-30T10:30:00.000000"
+}
+```
+
+---
+
+**Resultado Final (GET /status/{origem_id})**
+```json
+{
+  "origem_id": "550e8400-e29b-41d4-a716-446655440000",
+  "status": "completed",
+  "step": "finished",
+  "progress": 100,
+  "updated_at": "2026-01-30T10:30:01.234567",
+  "result": {
+    "origem_id": "550e8400-e29b-41d4-a716-446655440000",
+    "protocolo": "LAI-2026-001",
+    
+    "texto_anonimizado": "Solicito cópia do contrato 2024/99. Meu nome é <PESSOA>, CPF <CPF>, email <EMAIL>, telefone <TELEFONE>.",
+    
+    "resumo_inteligente": {
+      "categoria": "Contratos",
+      "subcategoria": "Solicitação de Cópia",
+      "prioridade": "Media",
+      "assunto_principal": "Solicitação de cópia de contrato administrativo",
+      "palavras_chave": ["contrato", "cópia", "2024"],
+      "requer_analise_juridica": false,
+      "prazo_sugerido": "Normal",
+      "orgao_competente_sugerido": "Secretaria de Administração"
+    },
+    
+    "estatisticas": {
+      "total_entidades": 4,
+      "por_tipo": {
+        "PESSOA": 1,
+        "CPF": 1,
+        "EMAIL": 1,
+        "TELEFONE": 1
+      },
+      "nivel_risco": "alto"
+    },
+    
+    "processamento": {
+      "tempo_ms": 987,
+      "timestamp": "2026-01-30T10:30:01.234567"
+    },
+    
+    "auditoria": {
+      "usuario_id": "maria.souza",
+      "timestamp_inicio": "2026-01-30T10:30:00.000000",
+      "timestamp_fim": "2026-01-30T10:30:01.234567",
+      "etapas": [
+        {"step": "deteccao", "status": "completed"},
+        {"step": "resumo_llm", "status": "completed"},
+        {"step": "banco", "status": "completed"},
+        {"step": "dicionario", "status": "completed"}
+      ],
+      "conformidade": {
+        "lgpd": true,
+        "ia_local": true
+      }
+    }
+  }
+}
+```
+
+---
+
+### Tipos de PII Detectados
+
+| Tipo | Descrição | Exemplo Original | Exemplo Anonimizado |
+|------|-----------|------------------|---------------------|
+| `CPF` | Cadastro de Pessoa Física | 123.456.789-00 | `<CPF>` |
+| `CNPJ` | Cadastro Nacional de Pessoa Jurídica | 12.345.678/0001-90 | `<CNPJ>` |
+| `EMAIL` | Endereço de e-mail | usuario@exemplo.com | `<EMAIL>` |
+| `TELEFONE` | Telefone com DDD | (21) 98765-4321 | `<TELEFONE>` |
+| `PESSOA` | Nome completo (contextual) | Maria Silva | `<PESSOA>` |
+| `ENDERECO` | Endereço residencial | Rua X, nº 123 | `<ENDERECO>` |
+| `RG` | Registro Geral | 12.345.678-9 | `<RG>` |
+| `CARTAO_CREDITO` | Número de cartão | 1234 5678 9012 3456 | `<CARTAO_CREDITO>` |
+| `CEP` | Código de Endereçamento Postal | 12345-678 | `<CEP>` |
+| `DATA_NASCIMENTO` | Data de nascimento | 01/01/1990 | `<DATA_NASCIMENTO>` |
+
+---
+
+### Níveis de Risco
+
+| Nível | Critério | Ação Recomendada |
+|-------|----------|------------------|
+| **Baixo** | 0-2 entidades de baixo risco (email, telefone isolados) | Revisão padrão |
+| **Médio** | 3-5 entidades OU contém CNPJ, endereço | Revisão cuidadosa |
+| **Alto** | 5+ entidades OU contém CPF, RG, cartão de crédito | Revisão prioritária + notificação |
+
+---
+
+### Erros Possíveis
+
+**400 Bad Request**
+```json
+{
+  "detail": [
+    {
+      "loc": ["body", "texto"],
+      "msg": "field required",
+      "type": "value_error.missing"
+    }
+  ]
+}
+```
+
+**401 Unauthorized**
+```json
+{
+  "detail": "Token inválido ou expirado"
+}
+```
+
+**404 Not Found**
+```json
+{
+  "detail": "Processamento não encontrado"
+}
+```
+
+**429 Too Many Requests**
+```json
+{
+  "detail": "Rate limit exceeded: 10 requests per minute"
+}
+```
+
+**500 Internal Server Error**
+```json
+{
+  "detail": "Erro interno no processamento"
+}
+```
+
+---
+
 ## 📊 Resultados dos Testes
 ```
 ╔══════════════════════════════════════════╗

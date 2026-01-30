@@ -77,6 +77,10 @@ app = FastAPI(
     *   Autenticação via Bearer Token (IAM).
     *   Rate Limiting por IP.
     *   Dados sensíveis nunca são persistidos em texto claro.
+    
+    ### 📚 Documentação
+    *   [Swagger UI](/docs) - Documentação interativa
+    *   [ReDoc](/redoc) - Documentação alternativa
     """,
     version="2.0.0",
     contact={
