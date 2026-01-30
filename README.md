@@ -42,23 +42,27 @@ O **SIGILO** detecta e protege automaticamente dados pessoais em pedidos LAI usa
 
 O projeto inclui um **Dashboard de Teste** (`tests/dashboard.html`) para facilitar a validação visual das funcionalidades da API. Abaixo estão screenshots deste ambiente de demonstração:
 
-### 1. Mensagem Bruta (Entrada)
+### 1. Demonstração do Processo
+![Processo](foto/processo.gif)
+*Animação demonstrando o fluxo completo de envio e processamento.*
+
+### 2. Mensagem Bruta (Entrada)
 ![Mensagem Bruta](foto/mensagem_bruta.png)
 *Interface de teste para envio de pedidos contendo dados pessoais sensíveis.*
 
-### 2. Resultado do Processamento
+### 3. Resultado do Processamento
 ![Resultado](foto/resultado_mensagem.png)
 *Visualização do retorno da API com texto anonimizado e classificado.*
 
-### 3. Tela de Status
+### 4. Tela de Status
 ![Status](foto/tela%20de%20status.png)
 *Acompanhamento em tempo real do processamento via WebSocket/Polling.*
 
-### 4. Auditoria (Visão Admin)
+### 5. Auditoria (Visão Admin)
 ![Auditoria](foto/administrador_acessando_auditoria.png)
 *Painel administrativo para consulta de logs e relatórios.*
 
-### 5. Bloqueio de Acesso Não Autorizado
+### 6. Bloqueio de Acesso Não Autorizado
 ![Bloqueio](foto/usuario_tentando_acesso_auditoria_bloqueio.png)
 *Demonstração de segurança (RBAC) impedindo acesso não autorizado.*
 
